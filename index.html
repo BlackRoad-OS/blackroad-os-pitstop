@@ -3,516 +3,666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlackRoad Pitstop — Secure Portal</title>
-    <meta name="description" content="Secure authentication portal for BlackRoad systems">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
+    <title>PitStop - Visual DevOps Dashboard | No More Terminal Hell</title>
+    <meta name="description" content="Manage your infrastructure visually. Docker, Kubernetes, databases, CI/CD pipelines - all in a beautiful dashboard. No terminal required.">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --black: #000000;
+            --white: #FFFFFF;
+            --amber: #F5A623;
+            --hot-pink: #FF1D6C;
+            --electric-blue: #2979FF;
+            --violet: #9C27B0;
+            --green: #00E676;
+            --red: #FF1744;
+            --space-xs: 8px;
+            --space-sm: 13px;
+            --space-md: 21px;
+            --space-lg: 34px;
+            --space-xl: 55px;
+            --space-2xl: 89px;
+            --space-3xl: 144px;
+            --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        :root {
-            --bg-dark: #0a0a0a;
-            --bg-darker: #050505;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent-orange: #FF9D00;
-            --accent-red: #FF006B;
-            --accent-purple: #7700FF;
-            --accent-blue: #0066FF;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --success: #27AE60;
-            --error: #E74C3C;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
-            color: var(--text-primary);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+            background: var(--black);
+            color: var(--white);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Mono', monospace;
+            line-height: 1.618;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Animated Background */
-        .background {
-            position: absolute;
+        /* Grid Background */
+        .grid-bg {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 55px 55px;
+            animation: grid-move 20s linear infinite;
             z-index: 0;
         }
 
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(55px, 55px); }
         }
 
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .gradient-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.3;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: linear-gradient(45deg, var(--accent-orange), var(--accent-red));
-            top: -200px;
-            left: -200px;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, var(--accent-purple), var(--accent-blue));
-            bottom: -150px;
-            right: -150px;
-            animation-delay: 5s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(50px, -50px) scale(1.1); }
-            66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-
-        /* Main Container */
-        .container {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 480px;
-            padding: 20px;
-        }
-
-        .login-card {
-            background: var(--glass-bg);
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 60px 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: var(--space-md) var(--space-xl);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        nav .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .logo {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-text {
-            font-size: 42px;
-            font-weight: 900;
-            background: linear-gradient(45deg, var(--accent-orange), var(--accent-red), var(--accent-purple), var(--accent-blue));
-            background-size: 300% 300%;
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--amber), var(--hot-pink), var(--violet));
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientShift 3s ease infinite;
-            margin-bottom: 8px;
         }
 
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .logo-subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 500;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.12);
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 0 3px rgba(119, 0, 255, 0.1);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.5;
-        }
-
-        .submit-button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(45deg, var(--accent-orange), var(--accent-red));
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            font-family: 'Inter', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        .submit-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 157, 0, 0.3);
-        }
-
-        .submit-button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .submit-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            color: var(--error);
-            padding: 12px 16px;
+        .btn {
+            padding: var(--space-sm) var(--space-lg);
             border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            display: none;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s var(--ease);
+            display: inline-block;
         }
 
-        .error-message.show {
-            display: block;
-            animation: slideDown 0.3s ease;
+        .btn-primary {
+            background: var(--hot-pink);
+            color: var(--white);
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 29, 108, 0.4);
         }
 
-        .info-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 1px solid var(--glass-border);
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-xl);
+            position: relative;
+            z-index: 2;
         }
 
-        .info-grid {
+        .hero {
+            padding: calc(var(--space-3xl) * 2) 0 var(--space-3xl);
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: var(--space-md);
+            line-height: 1.1;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--amber) 0%, var(--hot-pink) 38.2%, var(--violet) 61.8%, var(--electric-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: var(--space-xl);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Dashboard Preview */
+        .dashboard-preview {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: var(--space-lg);
+            margin: var(--space-3xl) 0;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .status-bar {
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: rgba(255, 255, 255, 0.05);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.green { background: var(--green); }
+        .status-dot.red { background: var(--red); }
+        .status-dot.amber { background: var(--amber); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            transition: all 0.3s var(--ease);
+        }
+
+        .dashboard-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--hot-pink);
+            transform: translateY(-4px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .card-badge {
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-green {
+            background: rgba(0, 230, 118, 0.2);
+            color: var(--green);
+        }
+
+        .badge-red {
+            background: rgba(255, 23, 68, 0.2);
+            color: var(--red);
+        }
+
+        .metric {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--hot-pink), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--space-sm);
+        }
+
+        .metric-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin: var(--space-3xl) 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            transition: all 0.3s var(--ease);
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-4px);
+            border-color: var(--hot-pink);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-md);
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: var(--space-sm);
+            color: var(--hot-pink);
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Code Example */
+        .code-comparison {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: var(--space-lg);
+            margin: var(--space-3xl) 0;
         }
 
-        .info-card {
+        .code-block {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: var(--space-lg);
+        }
+
+        .code-block h3 {
+            margin-bottom: var(--space-md);
+            color: var(--hot-pink);
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: var(--space-md);
             border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            font-size: 12px;
+            overflow-x: auto;
+            font-family: 'SF Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        .info-icon {
+        .pricing {
+            text-align: center;
+            margin: var(--space-3xl) 0;
+        }
+
+        .pricing h2 {
+            font-size: 48px;
+            margin-bottom: var(--space-xl);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: var(--space-xl);
+            transition: all 0.3s var(--ease);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--hot-pink);
+            background: rgba(255, 29, 108, 0.05);
+            transform: scale(1.05);
+        }
+
+        .pricing-card h3 {
+            font-size: 28px;
+            margin-bottom: var(--space-md);
+        }
+
+        .price {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--hot-pink), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--space-md);
+        }
+
+        .price span {
             font-size: 20px;
-            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.5);
         }
 
-        .info-text {
-            color: var(--text-secondary);
+        .pricing-card ul {
+            list-style: none;
+            margin-bottom: var(--space-xl);
+            text-align: left;
         }
 
-        .footer {
+        .pricing-card li {
+            padding: var(--space-xs) 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pricing-card li::before {
+            content: '✓';
+            color: var(--hot-pink);
+            margin-right: var(--space-sm);
+            font-weight: bold;
+        }
+
+        footer {
             text-align: center;
-            margin-top: 30px;
-            font-size: 11px;
-            color: var(--text-secondary);
+            padding: var(--space-xl) 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
         }
 
-        .footer a {
-            color: var(--accent-purple);
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .hidden {
-            display: none !important;
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; }
+            .code-comparison { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="background" id="background">
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-    </div>
+    <div class="grid-bg"></div>
 
-    <!-- Main Container -->
-    <div class="container">
-        <div class="login-card">
-            <div class="logo">
-                <div class="logo-text">PITSTOP</div>
-                <div class="logo-subtitle">BlackRoad Secure Portal</div>
-            </div>
+    <nav>
+        <div class="container">
+            <div class="logo">🏁 PitStop</div>
+            <a href="#pricing" class="btn btn-primary">Start Free Trial</a>
+        </div>
+    </nav>
 
-            <div class="error-message" id="error-message">
-                Invalid credentials. Please try again.
-            </div>
-
-            <form id="login-form">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <input
-                        type="text"
-                        id="username"
-                        class="form-input"
-                        placeholder="Enter your username"
-                        autocomplete="username"
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        class="form-input"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        required
-                    />
-                </div>
-
-                <button type="submit" class="submit-button" id="submit-button">
-                    <span id="button-text">Enter Pitstop</span>
-                    <span class="spinner hidden" id="spinner"></span>
-                </button>
-            </form>
-
-            <div class="info-section">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <div class="info-icon">🌌</div>
-                        <div class="info-text">Universe Access</div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-icon">📁</div>
-                        <div class="info-text">File Management</div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-icon">⚙️</div>
-                        <div class="info-text">System Tools</div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-icon">🔐</div>
-                        <div class="info-text">Secure Access</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Protected by BlackRoad Security</p>
-                <p>© 2025 BlackRoad OS, Inc. • <a href="mailto:blackroad.systems@gmail.com">Support</a></p>
+    <section class="hero">
+        <div class="container">
+            <h1>DevOps Without the<br><span class="gradient-text">Terminal Hell</span></h1>
+            <p>Manage your entire infrastructure visually. Docker, Kubernetes, databases, CI/CD pipelines - all in a beautiful dashboard.</p>
+            <div style="display: flex; gap: var(--space-md); justify-content: center; margin-top: var(--space-xl);">
+                <a href="#demo" class="btn btn-primary">See Live Demo →</a>
+                <a href="https://github.com/BlackRoad-OS/blackroad-os-pitstop" class="btn" style="background: rgba(255,255,255,0.1); color: white;">View on GitHub</a>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section id="demo" class="container">
+        <div class="dashboard-preview">
+            <div class="dashboard-header">
+                <h2>Live Infrastructure Dashboard</h2>
+                <div class="status-bar">
+                    <div class="status-item">
+                        <div class="status-dot green"></div>
+                        <span>12 containers running</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot green"></div>
+                        <span>3 databases healthy</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot amber"></div>
+                        <span>1 deployment pending</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">🐳 Docker Containers</div>
+                        <div class="card-badge badge-green">Healthy</div>
+                    </div>
+                    <div class="metric">12/12</div>
+                    <div class="metric-label">Running containers</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        nginx, postgres, redis, api-server, frontend, worker, cache, queue, metrics, logs, backup, monitor
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">☸️ Kubernetes</div>
+                        <div class="card-badge badge-green">Running</div>
+                    </div>
+                    <div class="metric">24</div>
+                    <div class="metric-label">Active pods</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        3 nodes • 8 deployments • 4 services
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">🗄️ Databases</div>
+                        <div class="card-badge badge-green">Optimized</div>
+                    </div>
+                    <div class="metric">3</div>
+                    <div class="metric-label">Databases online</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        PostgreSQL • MongoDB • Redis
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">🚀 Deployments</div>
+                        <div class="card-badge badge-green">Success</div>
+                    </div>
+                    <div class="metric">47</div>
+                    <div class="metric-label">Successful deploys today</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        Last: 2 minutes ago • Next: in queue
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">📊 Resources</div>
+                        <div class="card-badge badge-green">Healthy</div>
+                    </div>
+                    <div class="metric">42%</div>
+                    <div class="metric-label">CPU usage</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        Memory: 8.2/16GB • Disk: 120/500GB
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-title">🔒 Security</div>
+                        <div class="card-badge badge-green">Protected</div>
+                    </div>
+                    <div class="metric">0</div>
+                    <div class="metric-label">Vulnerabilities</div>
+                    <p style="margin-top: var(--space-md); color: rgba(255,255,255,0.6);">
+                        All images scanned • Secrets encrypted
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <div style="text-align: center; margin-bottom: var(--space-xl);">
+            <h2 style="font-size: 48px; margin-bottom: var(--space-md);">Before vs After PitStop</h2>
+        </div>
+        <div class="code-comparison">
+            <div class="code-block">
+                <h3>❌ The Old Way (Terminal Hell)</h3>
+                <pre>$ ssh user@server
+$ docker ps | grep api
+$ kubectl get pods -n production
+$ psql -h localhost -U postgres
+$ tail -f /var/log/nginx/error.log
+$ docker logs container-id
+$ kubectl describe pod pod-name
+$ docker-compose up -d
+$ kubectl apply -f deployment.yaml
+$ systemctl restart nginx
+$ journalctl -u service-name
+...and 50 more commands</pre>
+            </div>
+
+            <div class="code-block">
+                <h3>✅ With PitStop (Visual)</h3>
+                <pre>Open PitStop dashboard →
+
+See everything at a glance:
+✓ All containers running
+✓ All pods healthy
+✓ Database metrics
+✓ Live logs streaming
+✓ One-click deployments
+✓ Drag-and-drop config
+✓ Visual resource graphs
+✓ Automated monitoring
+
+Zero terminal commands needed.</pre>
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <h2 style="text-align: center; font-size: 48px; margin-bottom: var(--space-xl);">Everything You Need</h2>
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🐳</div>
+                <h3>Docker Management</h3>
+                <p>Visual container management. Start, stop, restart containers with one click. Live logs, metrics, and shell access.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">☸️</div>
+                <h3>Kubernetes Dashboard</h3>
+                <p>Manage pods, deployments, services visually. No more kubectl commands. Drag-and-drop scaling.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🗄️</div>
+                <h3>Database Tools</h3>
+                <p>PostgreSQL, MongoDB, MySQL, Redis - all in one place. Query, backup, monitor performance visually.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>CI/CD Pipelines</h3>
+                <p>Visual pipeline builder. Git push → auto deploy. Monitor builds, tests, deployments in real-time.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Resource Monitoring</h3>
+                <p>CPU, memory, disk, network - all visualized. Set alerts, track trends, optimize costs.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Security Scanning</h3>
+                <p>Auto-scan images for vulnerabilities. Manage secrets, certificates, and access controls visually.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="container">
+        <div class="pricing">
+            <h2>Simple, Transparent Pricing</h2>
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">$29<span>/month</span></div>
+                    <ul>
+                        <li>Up to 10 containers</li>
+                        <li>1 Kubernetes cluster</li>
+                        <li>3 databases</li>
+                        <li>Basic monitoring</li>
+                        <li>Email support</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" style="width: 100%;">Start Free Trial</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Pro</h3>
+                    <div class="price">$99<span>/month</span></div>
+                    <ul>
+                        <li>Unlimited containers</li>
+                        <li>5 Kubernetes clusters</li>
+                        <li>Unlimited databases</li>
+                        <li>Advanced monitoring</li>
+                        <li>CI/CD pipelines</li>
+                        <li>Security scanning</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" style="width: 100%;">Start Free Trial</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">Custom</div>
+                    <ul>
+                        <li>Everything in Pro</li>
+                        <li>Unlimited everything</li>
+                        <li>On-premise option</li>
+                        <li>Custom integrations</li>
+                        <li>White-label</li>
+                        <li>Dedicated support</li>
+                        <li>SLA guarantees</li>
+                    </ul>
+                    <a href="mailto:blackroad.systems@gmail.com" class="btn btn-primary" style="width: 100%;">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 BlackRoad OS, Inc. All rights reserved.</p>
+            <p style="margin-top: var(--space-sm);">DevOps made beautiful.</p>
+        </div>
+    </footer>
 
     <script>
-        // Create animated starfield
-        const background = document.getElementById('background');
-        for (let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            star.style.animationDelay = `${Math.random() * 3}s`;
-            background.appendChild(star);
-        }
-
-        // Authentication System
-        const VALID_CREDENTIALS = {
-            // Username: password hash (in production, use proper password hashing)
-            'alexa': 'blackroad2025',
-            'admin': 'blackroad2025',
-            'demo': 'demo123'
-        };
-
-        // Session management
-        const SESSION_KEY = 'blackroad_pitstop_session';
-        const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-
-        // Check for existing session on load
-        window.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-        });
-
-        function checkSession() {
-            const session = localStorage.getItem(SESSION_KEY);
-            if (session) {
-                try {
-                    const sessionData = JSON.parse(session);
-                    const now = Date.now();
-
-                    if (sessionData.expires > now) {
-                        // Valid session - redirect to dashboard
-                        window.location.href = 'dashboard.html';
-                        return;
-                    } else {
-                        // Expired session
-                        localStorage.removeItem(SESSION_KEY);
-                    }
-                } catch (e) {
-                    localStorage.removeItem(SESSION_KEY);
+        // Live dashboard simulation
+        setInterval(() => {
+            const metrics = document.querySelectorAll('.metric');
+            metrics.forEach(metric => {
+                if (metric.textContent.includes('%')) {
+                    const current = parseInt(metric.textContent);
+                    const change = Math.floor(Math.random() * 10) - 5;
+                    const newVal = Math.max(10, Math.min(90, current + change));
+                    metric.textContent = newVal + '%';
                 }
-            }
-        }
-
-        function createSession(username) {
-            const sessionData = {
-                username: username,
-                timestamp: Date.now(),
-                expires: Date.now() + SESSION_DURATION
-            };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        }
-
-        // Form submission
-        const form = document.getElementById('login-form');
-        const errorMessage = document.getElementById('error-message');
-        const submitButton = document.getElementById('submit-button');
-        const buttonText = document.getElementById('button-text');
-        const spinner = document.getElementById('spinner');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            // Hide error
-            errorMessage.classList.remove('show');
-
-            // Show loading state
-            submitButton.disabled = true;
-            buttonText.textContent = 'Authenticating';
-            spinner.classList.remove('hidden');
-
-            // Simulate network delay for realism
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Check credentials
-            if (VALID_CREDENTIALS[username] && VALID_CREDENTIALS[username] === password) {
-                // Success
-                buttonText.textContent = 'Access Granted';
-                spinner.classList.add('hidden');
-
-                // Create session
-                createSession(username);
-
-                // Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 500);
-            } else {
-                // Failed
-                submitButton.disabled = false;
-                buttonText.textContent = 'Enter Pitstop';
-                spinner.classList.add('hidden');
-                errorMessage.classList.add('show');
-
-                // Shake animation
-                document.querySelector('.login-card').style.animation = 'shake 0.5s';
-                setTimeout(() => {
-                    document.querySelector('.login-card').style.animation = '';
-                }, 500);
-            }
-        });
-
-        // Shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-                20%, 40%, 60%, 80% { transform: translateX(10px); }
-            }
-        `;
-        document.head.appendChild(style);
+            });
+        }, 5000);
     </script>
 </body>
 </html>
